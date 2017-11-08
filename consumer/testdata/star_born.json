@@ -1,7 +1,0 @@
-{
-    "description": "a new star is born",
-    "distance_from_earth": {
-        "value": 5000,
-        "unit": "lightyears"
-    }
-}

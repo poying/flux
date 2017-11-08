@@ -3,7 +3,7 @@ package mongodb
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/yehohanan7/flux/cqrs"
+	. "github.com/poying/flux/cqrs"
 )
 
 var _ = Describe("Mongo offset Store", func() {

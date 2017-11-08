@@ -1,32 +1,17 @@
 package mongodb
 
 import (
-	"time"
-
 	"github.com/golang/glog"
-	. "github.com/yehohanan7/flux/cqrs"
+	. "github.com/poying/flux/cqrs"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2/txn"
 )
 
 type mongoAggregateRecord struct {
-	Id      string                      `bson:"_id"`
-	Version int                         `bson:"version"`
-	Events  []mongoAggregateEventRecord `bson:"events"`
-}
-
-type mongoAggregateEventRecord struct {
-	Id        string    `bson:"_id"`
-	OccuredAt time.Time `bson:"occured_at"`
-	Data      []byte    `bson:"data"`
-}
-
-type mongoEventRecord struct {
-	Id          string    `bson:"_id"`
-	AggregateId string    `bson:"aggregate_id"`
-	OccuredAt   time.Time `bson:"occured_at"`
-	Data        []byte    `bson:"data"`
+	Id      string  `bson:"_id"`
+	Version int     `bson:"version"`
+	Events  []Event `bson:"events"`
 }
 
 type MongoEventStoreOptions struct {
@@ -73,27 +58,19 @@ func (store *MongoEventStore) GetEvents(aggregateId string) []Event {
 		}
 		return []Event{}
 	}
-	events := make([]Event, len(record.Events))
-	for index, eventRecord := range record.Events {
-		event := Event{}
-		event.Deserialize(eventRecord.Data)
-		events[index] = event
-	}
-	return events
+	return record.Events
 }
 
 func (store *MongoEventStore) GetEventMetaDataFrom(offset, count int) []EventMetaData {
 	collection := store.getEventCollection()
 	iter := collection.Find(nil).Skip(offset).Limit(count).Iter()
-	record := &mongoEventRecord{}
-	events := make([]EventMetaData, 0)
+	record := &EventMetaData{}
+	metaList := make([]EventMetaData, 0)
 	for iter.Next(record) {
-		meta := EventMetaData{}
-		meta.Deserialize(record.Data)
-		events = append(events, meta)
+		metaList = append(metaList, *record)
 	}
 	iter.Close()
-	return events
+	return metaList
 }
 
 func (store *MongoEventStore) createAggregate(aggregateId string) (bool, error) {
@@ -138,27 +115,11 @@ func (store *MongoEventStore) SaveEvents(aggregateId string, events []Event) err
 	runner := txn.NewRunner(store.getTransactionCollection())
 	ops := make([]txn.Op, l+2)
 
-	serializedEvents := make([]mongoAggregateEventRecord, len(events))
 	for index, event := range events {
-		eventTime, err := time.Parse(time.ANSIC, event.OccuredAt)
-		if err != nil {
-			return err
-		}
-		serializedEvents[index] = mongoAggregateEventRecord{
-			Id:        event.Id,
-			OccuredAt: eventTime,
-			Data:      event.Serialize(),
-		}
-
 		ops[index+2] = txn.Op{
-			C:  store.options.EventCollection,
-			Id: event.Id,
-			Insert: mongoEventRecord{
-				Id:          event.Id,
-				AggregateId: aggregateId,
-				OccuredAt:   eventTime,
-				Data:        event.EventMetaData.Serialize(),
-			},
+			C:      store.options.EventCollection,
+			Id:     event.Id,
+			Insert: event.EventMetaData,
 		}
 	}
 
@@ -169,7 +130,7 @@ func (store *MongoEventStore) SaveEvents(aggregateId string, events []Event) err
 		Update: bson.M{
 			"$push": bson.M{
 				"events": bson.M{
-					"$each": serializedEvents,
+					"$each": events,
 				},
 			},
 		},
@@ -191,8 +152,8 @@ func (store *MongoEventStore) SaveEvents(aggregateId string, events []Event) err
 
 func (store *MongoEventStore) GetEvent(id string) Event {
 	eventCollection := store.getEventCollection()
-	eventRecord := &mongoEventRecord{}
-	err := eventCollection.FindId(id).One(eventRecord)
+	meta := &EventMetaData{}
+	err := eventCollection.FindId(id).One(meta)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			glog.Fatal("Error while finding event ", err)
@@ -201,8 +162,9 @@ func (store *MongoEventStore) GetEvent(id string) Event {
 	}
 	aggregateCollection := store.getAggregateCollection()
 	pipe := aggregateCollection.Pipe([]bson.M{
+		bson.M{"$match": bson.M{"_id": meta.AggregateId}},
 		bson.M{"$unwind": "$events"},
-		bson.M{"$match": bson.M{"events._id": eventRecord.Id}},
+		bson.M{"$match": bson.M{"events.event_metadata._id": id}},
 		bson.M{"$project": bson.M{"events": []string{"$events"}}},
 	})
 	aggregateRecord := mongoAggregateRecord{}
@@ -213,10 +175,7 @@ func (store *MongoEventStore) GetEvent(id string) Event {
 		}
 		return Event{}
 	}
-	event := Event{}
-	aggregateEventRecord := aggregateRecord.Events[0]
-	event.Deserialize(aggregateEventRecord.Data)
-	return event
+	return aggregateRecord.Events[0]
 }
 
 func NewEventStore(options *MongoEventStoreOptions) *MongoEventStore {

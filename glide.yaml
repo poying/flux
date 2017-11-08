@@ -1,0 +1,67 @@
+package: github.com/poying/flux
+import:
+- package: github.com/boltdb/bolt
+  version: a705895fdad108f053eae7ee011ed94a0541ee13
+  repo: https://github.com/boltdb/bolt
+- package: github.com/golang/glog
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+  repo: https://github.com/golang/glog
+- package: github.com/golang/protobuf
+  version: 8ee79997227bf9b34611aee7946ae64735e6fd93
+  repo: https://github.com/golang/protobuf
+  subpackages:
+  - proto
+  - ptypes/any
+- package: github.com/gorilla/context
+  version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+  repo: https://github.com/gorilla/context
+- package: github.com/gorilla/feeds
+  version: 441264de03a8117ed530ae8e049d8f601a33a099
+  repo: https://github.com/gorilla/feeds
+- package: github.com/gorilla/mux
+  version: 757bef944d0f21880861c2dd9c871ca543023cba
+  repo: https://github.com/gorilla/mux
+- package: github.com/onsi/ginkgo
+  version: a23f924ce96d61f963fb6219b8ff069d8d768cc2
+  repo: https://github.com/onsi/ginkgo
+- package: github.com/onsi/gomega
+  version: f1f0f388b31eca4e2cbe7a6dd8a3a1dfddda5b1c
+  repo: https://github.com/onsi/gomega
+- package: github.com/pborman/uuid
+  version: 1b00554d822231195d1babd97ff4a781231955c9
+  repo: https://github.com/pborman/uuid
+- package: github.com/satori/go.uuid
+  version: b061729afc07e77a8aa4fad0a2fd840958f1942a
+  repo: https://github.com/satori/go.uuid
+- package: github.com/stretchr/testify
+  version: 2402e8e7a02fc811447d11f881aa9746cdc57983
+  repo: https://github.com/stretchr/testify
+  subpackages:
+  - assert
+  - vendor/github.com/davecgh/go-spew/spew
+  - vendor/github.com/pmezard/go-difflib/difflib
+- package: golang.org/x/net
+  version: 01c190206fbdffa42f334f4b2bf2220f50e64920
+  repo: https://go.googlesource.com/net
+  subpackages:
+  - context
+- package: golang.org/x/sys
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  repo: https://go.googlesource.com/sys
+  subpackages:
+  - unix
+- package: gopkg.in/h2non/gock.v1
+  version: ^1.0.3
+  repo: https://gopkg.in/h2non/gock.v1
+- package: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  repo: https://gopkg.in/mgo.v2
+  subpackages:
+  - bson
+  - txn
+- package: gopkg.in/tomb.v2
+  version: d5d1b5820637886def9eef33e03a27a9f166942c
+  repo: https://gopkg.in/tomb.v2
+- package: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+  repo: https://gopkg.in/yaml.v2

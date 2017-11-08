@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/yehohanan7/flux/utils"
+	"github.com/poying/flux/utils"
 )
 
 type Handlers map[reflect.Type]func(interface{}, interface{})

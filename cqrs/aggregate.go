@@ -32,7 +32,7 @@ func (aggregate *Aggregate) Save() error {
 //Update the event
 func (aggregate *Aggregate) Update(payloads ...interface{}) {
 	for _, payload := range payloads {
-		event := NewEvent(aggregate.name, aggregate.Version, payload)
+		event := NewEvent(aggregate.Id, aggregate.name, aggregate.Version, payload)
 		aggregate.Events = append(aggregate.Events, event)
 		aggregate.apply(event)
 	}

@@ -7,8 +7,8 @@ import (
 
 	"strings"
 
-	. "github.com/yehohanan7/flux/cqrs"
-	. "github.com/yehohanan7/flux/utils"
+	. "github.com/poying/flux/cqrs"
+	. "github.com/poying/flux/utils"
 )
 
 const DEFAULT_PAGE_SIZE = 20

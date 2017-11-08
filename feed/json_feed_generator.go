@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/golang/glog"
-	. "github.com/yehohanan7/flux/cqrs"
+	. "github.com/poying/flux/cqrs"
 )
 
 type JsonFeedGenerator struct {

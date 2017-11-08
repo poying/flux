@@ -1,8 +1,6 @@
 package cqrs
 
 import (
-	"time"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -24,7 +22,7 @@ var _ = Describe("Event", func() {
 	)
 
 	BeforeEach(func() {
-		event = NewEvent(aggregateName, aggregateVersion, SomePayLoad{SomeData{"some data"}})
+		event = NewEvent("agg-id", aggregateName, aggregateVersion, SomePayLoad{SomeData{"some data"}})
 	})
 
 	_ = Describe("Creating New Event", func() {
@@ -38,10 +36,6 @@ var _ = Describe("Event", func() {
 
 		It("Should have aggregate version", func() {
 			Expect(event.AggregateVersion).To(Equal(aggregateVersion))
-		})
-
-		It("Should update occurred at", func() {
-			Expect(event.OccuredAt).To(Equal(time.Now().Format(time.ANSIC)))
 		})
 
 		It("Should determine the event type", func() {

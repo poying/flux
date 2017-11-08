@@ -2,8 +2,9 @@ package feed
 
 import (
 	"fmt"
+	"time"
 
-	. "github.com/yehohanan7/flux/cqrs"
+	. "github.com/poying/flux/cqrs"
 )
 
 type JsonEventFeed struct {
@@ -12,12 +13,12 @@ type JsonEventFeed struct {
 }
 
 type EventEntry struct {
-	EventId          string `json:"event_id"`
-	Url              string `json:"url"`
-	AggregateName    string `json:"aggregate_name"`
-	AggregateVersion int    `json:"aggregate_version"`
-	EventType        string `json:"event_type"`
-	Created          string `json:"created"`
+	EventId          string    `json:"event_id"`
+	Url              string    `json:"url"`
+	AggregateName    string    `json:"aggregate_name"`
+	AggregateVersion int       `json:"aggregate_version"`
+	EventType        string    `json:"event_type"`
+	Created          time.Time `json:"created"`
 }
 
 func ToEventEntry(url string, meta EventMetaData) EventEntry {

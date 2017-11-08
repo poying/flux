@@ -1,55 +1,47 @@
 package cqrs
 
 import (
+	"encoding/json"
 	"reflect"
 	"time"
+
+	"github.com/golang/glog"
 
 	uuid "github.com/satori/go.uuid"
 )
 
 type EventMetaData struct {
-	Id               string `json:"id"`
-	OccuredAt        string `json:"occured_at"`
-	AggregateVersion int    `json:"aggregate_version"`
-	AggregateName    string `json:"aggregate_name"`
-	Type             string `json:"type"`
+	Id               string    `json:"id" bson:"_id"`
+	OccuredAt        time.Time `json:"occured_at" bson:"occured_at"`
+	AggregateVersion int       `json:"aggregate_version" bson:"aggregate_version"`
+	AggregateName    string    `json:"aggregate_name" bson:"aggregate_name"`
+	AggregateId      string    `json:"aggregate_id" bson:"aggregate_id"`
+	Type             string    `json:"type" bson:"type"`
 }
 
 //Every action on an aggregate emits an event, which is wrapped and saved
 type Event struct {
-	EventMetaData
-	Payload interface{} `json:"payload"`
+	EventMetaData `json:"event_metadata" bson:"event_metadata"`
+	Payload       []byte `json:"payload" bson:"payload"`
 }
 
-func (e *EventMetaData) Deserialize(data []byte) {
-	deserialize(data, e)
-}
-
-func (e *Event) Deserialize(data []byte) {
-	deserialize(data, e)
-}
-
-func (e *Event) Serialize() []byte {
-	return serialize(e)
-}
-
-func (e *EventMetaData) Serialize() []byte {
-	return serialize(e)
+func (event Event) Decode(entity interface{}) error {
+	return json.Unmarshal(event.Payload, entity)
 }
 
 //Create new event
-func NewEvent(aggregateName string, aggregateVersion int, payload interface{}) Event {
+func NewEvent(aggregateId string, aggregateName string, aggregateVersion int, payload interface{}) Event {
+	payloadData, err := json.Marshal(payload)
+	if err != nil {
+		glog.Fatal("Failed to encode payload ", err)
+	}
 	meta := EventMetaData{
 		Id:               uuid.NewV4().String(),
+		AggregateId:      aggregateId,
 		AggregateVersion: aggregateVersion,
 		AggregateName:    aggregateName,
-		OccuredAt:        time.Now().Format(time.ANSIC),
+		OccuredAt:        time.Now().Round(time.Millisecond),
 		Type:             reflect.TypeOf(payload).String(),
 	}
-	return Event{meta, payload}
-}
-
-//Makes a event object from metadata and payload
-func MakeEvent(meta EventMetaData, payload interface{}) Event {
-	return Event{meta, payload}
+	return Event{meta, payloadData}
 }

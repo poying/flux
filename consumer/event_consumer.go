@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	. "github.com/yehohanan7/flux/cqrs"
-	. "github.com/yehohanan7/flux/feed"
-	"github.com/yehohanan7/flux/utils"
+	. "github.com/poying/flux/cqrs"
+	. "github.com/poying/flux/feed"
+	"github.com/poying/flux/utils"
 )
 
 func eventMap(events []interface{}) map[string]reflect.Type {

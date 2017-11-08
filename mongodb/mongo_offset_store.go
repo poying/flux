@@ -1,7 +1,7 @@
 package mongodb
 
 import (
-	"github.com/yehohanan7/flux/cqrs"
+	"github.com/poying/flux/cqrs"
 	mgo "gopkg.in/mgo.v2"
 )
 
