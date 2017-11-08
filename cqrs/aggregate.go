@@ -44,8 +44,8 @@ func (aggregate *Aggregate) apply(events ...Event) {
 		payload := e.Payload
 		if handler, ok := aggregate.handlers[reflect.TypeOf(payload)]; ok {
 			handler(aggregate.entity, payload)
-			aggregate.Version++
 		}
+		aggregate.Version = e.EventMetaData.AggregateVersion + 1
 	}
 }
 
