@@ -1,6 +1,7 @@
 package feed
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -27,7 +28,8 @@ func events(w http.ResponseWriter, r *http.Request, store EventStore) {
 
 func event(w http.ResponseWriter, r *http.Request, store EventStore, id string) {
 	event := store.GetEvent(id)
-	w.Write(event.Payload)
+	data, _ := json.Marshal(event.Payload)
+	w.Write(data)
 }
 
 func getEventId(path string) string {

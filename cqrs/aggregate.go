@@ -1,7 +1,6 @@
 package cqrs
 
 import (
-	"encoding/gob"
 	"reflect"
 
 	"github.com/golang/glog"
@@ -9,13 +8,20 @@ import (
 
 //Aggregate as in the DDD world
 type Aggregate struct {
-	Id       string
-	name     string
-	Version  int
-	Events   []Event
-	entity   interface{}
-	handlers Handlers
-	store    EventStore
+	Id      string
+	name    string
+	Version int
+	Events  []Event
+	entity  interface{}
+	store   EventStore
+}
+
+type EventApplyer interface {
+	ApplyEvent(event Event) error
+}
+
+type AggregateNameGetter interface {
+	GetAggregateName() string
 }
 
 //Save the events accumulated so far
@@ -41,9 +47,9 @@ func (aggregate *Aggregate) Update(payloads ...interface{}) {
 //Apply events
 func (aggregate *Aggregate) apply(events ...Event) {
 	for _, e := range events {
-		payload := e.Payload
-		if handler, ok := aggregate.handlers[reflect.TypeOf(payload)]; ok {
-			handler(aggregate.entity, payload)
+		applyer, ok := aggregate.entity.(EventApplyer)
+		if ok {
+			applyer.ApplyEvent(e)
 		}
 		aggregate.Version = e.EventMetaData.AggregateVersion + 1
 	}
@@ -51,19 +57,17 @@ func (aggregate *Aggregate) apply(events ...Event) {
 
 //Create new aggregate with a backing event store
 func NewAggregate(id string, entity interface{}, store EventStore) Aggregate {
-	handlers := NewHandlers(entity)
-	for eventType, _ := range handlers {
-		gob.Register(reflect.New(eventType).Elem().Interface())
+	name := reflect.TypeOf(entity).String()
+	if nameGetter, ok := entity.(AggregateNameGetter); ok {
+		name = nameGetter.GetAggregateName()
 	}
-
 	aggregate := Aggregate{
-		Id:       id,
-		Version:  0,
-		Events:   []Event{},
-		entity:   entity,
-		handlers: NewHandlers(entity),
-		store:    store,
-		name:     reflect.TypeOf(entity).String(),
+		Id:      id,
+		Version: 0,
+		Events:  []Event{},
+		entity:  entity,
+		store:   store,
+		name:    name,
 	}
 	return aggregate
 }

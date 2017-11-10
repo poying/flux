@@ -5,10 +5,12 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/golang/glog"
-
 	uuid "github.com/satori/go.uuid"
 )
+
+type EventTypeGetter interface {
+	GetEventType() string
+}
 
 type EventMetaData struct {
 	Id               string    `json:"id" bson:"_id"`
@@ -22,18 +24,22 @@ type EventMetaData struct {
 //Every action on an aggregate emits an event, which is wrapped and saved
 type Event struct {
 	EventMetaData `json:"event_metadata" bson:"event_metadata"`
-	Payload       []byte `json:"payload" bson:"payload"`
+	Payload       interface{} `json:"payload" bson:"payload"`
 }
 
 func (event Event) Decode(entity interface{}) error {
-	return json.Unmarshal(event.Payload, entity)
+	jsonStr, err := json.Marshal(event.Payload)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonStr, entity)
 }
 
 //Create new event
 func NewEvent(aggregateId string, aggregateName string, aggregateVersion int, payload interface{}) Event {
-	payloadData, err := json.Marshal(payload)
-	if err != nil {
-		glog.Fatal("Failed to encode payload ", err)
+	typ := reflect.TypeOf(payload).String()
+	if typeGetter, ok := payload.(EventTypeGetter); ok {
+		typ = typeGetter.GetEventType()
 	}
 	meta := EventMetaData{
 		Id:               uuid.NewV4().String(),
@@ -41,7 +47,7 @@ func NewEvent(aggregateId string, aggregateName string, aggregateVersion int, pa
 		AggregateVersion: aggregateVersion,
 		AggregateName:    aggregateName,
 		OccuredAt:        time.Now().Round(time.Millisecond),
-		Type:             reflect.TypeOf(payload).String(),
+		Type:             typ,
 	}
-	return Event{meta, payloadData}
+	return Event{meta, payload}
 }
